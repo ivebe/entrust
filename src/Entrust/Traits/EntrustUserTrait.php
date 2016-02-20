@@ -50,6 +50,17 @@ trait EntrustUserTrait
     }
 
     /**
+     * Many-to-Many relations with the permission model.
+     * This is different than perms from EntrustRoleTrait simply because those permissions are directly connected to user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function perms()
+    {
+        return $this->belongsToMany(Config::get('entrust.permission'), Config::get('entrust.permission_user_table'), Config::get('entrust.user_foreign_key'), Config::get('entrust.permission_foreign_key'));
+    }
+
+    /**
      * Boot the user model
      * Attach event listener to remove the many-to-many records when trying to delete
      * Will NOT delete any records if the user model uses soft deletes.
@@ -63,6 +74,7 @@ trait EntrustUserTrait
         static::deleting(function($user) {
             if (!method_exists(Config::get('auth.model'), 'bootSoftDeletes')) {
                 $user->roles()->sync([]);
+                $user->perms()->sync([]);
             }
 
             return true;
@@ -137,6 +149,13 @@ trait EntrustUserTrait
                     if (str_is( $permission, $perm->name) ) {
                         return true;
                     }
+                }
+            }
+
+            // Validate User against the permission_user table
+            foreach ($this->perms as $perm) {
+                if ($perm->name == $permission) {
+                    return true;
                 }
             }
         }
@@ -273,6 +292,88 @@ trait EntrustUserTrait
         
         foreach ($roles as $role) {
             $this->detachRole($role);
+        }
+    }
+
+    /**
+     * Save the inputted permissions.
+     *
+     * @param mixed $inputPermissions
+     *
+     * @return void
+     */
+    public function savePermissions($inputPermissions)
+    {
+        if (!empty($inputPermissions)) {
+            $this->perms()->sync($inputPermissions);
+        } else {
+            $this->perms()->detach();
+        }
+    }
+
+    /**
+     * Attach permission to current role.
+     *
+     * @param object|array $permission
+     *
+     * @return void
+     */
+    public function attachPermission($permission)
+    {
+        if (is_object($permission)) {
+            $permission = $permission->getKey();
+        }
+
+        if (is_array($permission)) {
+            $permission = $permission['id'];
+        }
+
+        $this->perms()->attach($permission);
+    }
+
+    /**
+     * Detach permission form current role.
+     *
+     * @param object|array $permission
+     *
+     * @return void
+     */
+    public function detachPermission($permission)
+    {
+        if (is_object($permission))
+            $permission = $permission->getKey();
+
+        if (is_array($permission))
+            $permission = $permission['id'];
+
+        $this->perms()->detach($permission);
+    }
+
+    /**
+     * Attach multiple permissions to current role.
+     *
+     * @param mixed $permissions
+     *
+     * @return void
+     */
+    public function attachPermissions($permissions)
+    {
+        foreach ($permissions as $permission) {
+            $this->attachPermission($permission);
+        }
+    }
+
+    /**
+     * Detach multiple permissions from current role
+     *
+     * @param mixed $permissions
+     *
+     * @return void
+     */
+    public function detachPermissions($permissions)
+    {
+        foreach ($permissions as $permission) {
+            $this->detachPermission($permission);
         }
     }
 

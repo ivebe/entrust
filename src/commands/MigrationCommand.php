@@ -40,11 +40,12 @@ class MigrationCommand extends Command
         $roleUserTable       = Config::get('entrust.role_user_table');
         $permissionsTable    = Config::get('entrust.permissions_table');
         $permissionRoleTable = Config::get('entrust.permission_role_table');
+        $permissionUserTable = Config::get('entrust.permission_user_table');
 
         $this->line('');
-        $this->info( "Tables: $rolesTable, $roleUserTable, $permissionsTable, $permissionRoleTable" );
+        $this->info( "Tables: $rolesTable, $roleUserTable, $permissionsTable, $permissionRoleTable, $permissionUserTable" );
 
-        $message = "A migration that creates '$rolesTable', '$roleUserTable', '$permissionsTable', '$permissionRoleTable'".
+        $message = "A migration that creates '$rolesTable', '$roleUserTable', '$permissionsTable', '$permissionRoleTable', '$permissionUserTable'".
         " tables will be created in database/migrations directory";
 
         $this->comment($message);
@@ -55,7 +56,7 @@ class MigrationCommand extends Command
             $this->line('');
 
             $this->info("Creating migration...");
-            if ($this->createMigration($rolesTable, $roleUserTable, $permissionsTable, $permissionRoleTable)) {
+            if ($this->createMigration($rolesTable, $roleUserTable, $permissionsTable, $permissionRoleTable, $permissionUserTable)) {
 
                 $this->info("Migration successfully created!");
             } else {
@@ -77,7 +78,7 @@ class MigrationCommand extends Command
      *
      * @return bool
      */
-    protected function createMigration($rolesTable, $roleUserTable, $permissionsTable, $permissionRoleTable)
+    protected function createMigration($rolesTable, $roleUserTable, $permissionsTable, $permissionRoleTable, $permissionUserTable)
     {
         $migrationFile = base_path("/database/migrations")."/".date('Y_m_d_His')."_entrust_setup_tables.php";
 
@@ -85,7 +86,7 @@ class MigrationCommand extends Command
         $userModel   = Config::get('auth.model');
         $userKeyName = (new $userModel())->getKeyName();
 
-        $data = compact('rolesTable', 'roleUserTable', 'permissionsTable', 'permissionRoleTable', 'usersTable', 'userKeyName');
+        $data = compact('rolesTable', 'roleUserTable', 'permissionsTable', 'permissionRoleTable', 'permissionUserTable', 'usersTable', 'userKeyName');
 
         $output = $this->laravel->view->make('entrust::generators.migration')->with($data)->render();
 

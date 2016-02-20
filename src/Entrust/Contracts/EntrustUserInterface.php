@@ -18,6 +18,14 @@ interface EntrustUserInterface
     public function roles();
 
     /**
+     * Many-to-Many relations with the permission model.
+     * This is different than perms from Role simply because those permissions are directly connected to user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function perms();
+
+    /**
      * Checks if the user has a role by its name.
      *
      * @param string|array $name       Role name or array of role names.
@@ -77,4 +85,49 @@ interface EntrustUserInterface
      * @param mixed $roles
      */
     public function detachRoles($roles);
+
+    /**
+     * Save the inputted permissions.
+     *
+     * @param mixed $inputPermissions
+     *
+     * @return void
+     */
+    public function savePermissions($inputPermissions);
+
+    /**
+     * Attach permission to current role.
+     *
+     * @param object|array $permission
+     *
+     * @return void
+     */
+    public function attachPermission($permission);
+
+    /**
+     * Detach permission form current role.
+     *
+     * @param object|array $permission
+     *
+     * @return void
+     */
+    public function detachPermission($permission);
+
+    /**
+     * Attach multiple permissions to current role.
+     *
+     * @param mixed $permissions
+     *
+     * @return void
+     */
+    public function attachPermissions($permissions);
+
+    /**
+     * Detach multiple permissions from current role
+     *
+     * @param mixed $permissions
+     *
+     * @return void
+     */
+    public function detachPermissions($permissions);
 }
